@@ -9,6 +9,30 @@ const generateToken = (userId) => {
   });
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getMe = async (req, res) => {
+  try {
+    res.status(200).json({
+      id: req.user._id,
+      fullName: req.user.fullName,
+      email: req.user.email,
+      role: req.user.role,
+      status: req.user.status,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+#sign up
 
 const signup = async (req, res) => {
   try {
@@ -65,6 +89,7 @@ const signup = async (req, res) => {
 };
 
 
+#login
 
 const login = async (req, res) => {
   try {
@@ -112,6 +137,91 @@ const login = async (req, res) => {
   res.status(500).json({ message: "Server error" });
 }
 
+
+#logout
+
+const logout = async (req, res) => {
+  try {
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-module.exports = { signup , login };
+
+#update profile
+
+const updateProfile = async (req, res) => {
+  try {
+    const { fullName, email } = req.body;
+
+    if (!fullName || !email) {
+      return res.status(400).json({ message: "Full name and email are required" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    const emailExists = await User.findOne({
+      email,
+      _id: { $ne: req.user._id },
+    });
+
+    if (emailExists) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+
+    req.user.fullName = fullName;
+    req.user.email = email;
+
+    await req.user.save();
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        id: req.user._id,
+        fullName: req.user.fullName,
+        email: req.user.email,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+#change password
+
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "Old and new passwords are required" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters long",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, req.user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Old password is incorrect" });
+    }
+
+    req.user.password = await bcrypt.hash(newPassword, 10);
+    await req.user.save();
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+module.exports = { signup, login, getMe, getAllUsers,logout,updateProfile,changePassword};
+
