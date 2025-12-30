@@ -35,46 +35,40 @@ const getMe = async (req, res) => {
 #sign up
 
 const signup = async (req, res) => {
-  try {
-    const { fullName, email, password } = req.body;
+  const { fullName, email, password } = req.body;
 
-    // 1. Validation
-    if (!fullName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+  if (!fullName || !email || !password) {
+    res.status(400);
+    throw new Error("All fields are required");
+  }
 
-    if (!validator.isEmail(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
-    }
+  if (!validator.isEmail(email)) {
+    res.status(400);
+    throw new Error("Invalid email format");
+  }
 
-    if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
-    }
+  if (password.length < 8) {
+    res.status(400);
+    throw new Error("Password must be at least 8 characters long");
+  }
 
-    // 2. Check existing user
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(409).json({ message: "User already exists" });
-    }
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    res.status(400);
+    throw new Error("User already exists");
+  }
 
-    // 3. Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+  const user = await User.create({
+    fullName,
+    email,
+    password,
+  });
 
-    // 4. Create user
-    const user = await User.create({
-      fullName,
-      email,
-      password: hashedPassword,
-    });
+  const token = generateToken(user._id);
 
-    // 5. Generate token
-    const token = generateToken(user._id);
-
-    res.status(201).json({
-      message: "User registered successfully",
+  res.status(201).json({
+    success: true,
+    data: {
       token,
       user: {
         id: user._id,
@@ -82,48 +76,48 @@ const signup = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
+    },
+  });
 };
 
 
 #login
 
 const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    // 1. Validate input
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
-    }    // 2. Find user
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Email and password are required");
+  }
 
-    // 3. Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(401);
+    throw new Error("Invalid credentials");
+  }
 
-    // 4. Check account status
-    if (user.status === "inactive") {
-      return res.status(403).json({ message: "Account is deactivated" });
-    }
+  if (user.status === "inactive") {
+    res.status(403);
+    throw new Error("Account is deactivated");
+  }
+if (req.user._id.toString() === req.params.id) {
+  res.status(400);
+  throw new Error("Admin cannot deactivate own account");
+}
 
-    // 5. Generate token
-    const token = generateToken(user._id);
 
-    // 6. Update last login
-    user.lastLogin = new Date();
-    await user.save();
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    res.status(401);
+    throw new Error("Invalid credentials");
+  }
 
-    res.status(200).json({
-      message: "Login successful",
+  const token = generateToken(user._id);
+
+  res.status(200).json({
+    success: true,
+    data: {
       token,
       user: {
         id: user._id,
@@ -131,11 +125,10 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-    });
-  } catch (error) {
-  console.error("Login error:", error.message);
-  res.status(500).json({ message: "Server error" });
-}
+    },
+  });
+};
+
 
 
 #logout
@@ -172,6 +165,15 @@ const updateProfile = async (req, res) => {
     if (emailExists) {
       return res.status(400).json({ message: "Email already in use" });
     }
+if (req.user.status === "inactive") {
+  res.status(403);
+  throw new Error("Account is deactivated");
+}
+
+if (req.user._id.toString() === req.params.id) {
+  res.status(400);
+  throw new Error("Admin cannot deactivate own account");
+}
 
     req.user.fullName = fullName;
     req.user.email = email;
@@ -215,6 +217,14 @@ const changePassword = async (req, res) => {
 
     req.user.password = await bcrypt.hash(newPassword, 10);
     await req.user.save();
+if (req.user.status === "inactive") {
+  res.status(403);
+  throw new Error("Account is deactivated");
+}
+if (req.user._id.toString() === req.params.id) {
+  res.status(400);
+  throw new Error("Admin cannot deactivate own account");
+}
 
     res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {

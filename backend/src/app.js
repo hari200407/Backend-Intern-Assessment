@@ -18,4 +18,8 @@ app.get("/", (req, res) => {
 
 app.use("/api/admin", adminRoutes);
 
+const { errorHandler } = require("./middleware/errorMiddleware");
+
+app.use(errorHandler);
+
 module.exports = app;
