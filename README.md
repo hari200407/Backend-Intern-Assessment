@@ -1,92 +1,123 @@
-# Backend Intern Assessment
+# Backend Intern Assessment – Full Stack Application
 
-This repository contains a full-stack application developed as part of a Backend Intern assessment.  
-The project includes a Node.js + Express backend with authentication and role-based access control, along with a simple frontend to consume the APIs.
+This repository contains a full-stack application developed as part of a Backend Intern assessment. 
+The project includes a Node.js + Express backend with authentication, role-based access control, and user management, along with a React frontend that consumes and demonstrates all backend APIs.
 
----
+-----
 
-## Features
+##  Features
+
+### Authentication
+-> User signup with full name, email, and password
+-> Email format and password strength validation
+-> JWT-based authentication
+-> User login with credential verification
+-> Logout functionality
+-> Endpoint to fetch current logged-in user
+
+### User Management (User)
+-> View own profile
+-> Update full name and email
+-> Change password
+-> Protected routes for authenticated users
+
+### User Management (Admin)
+-> View all users in a paginated table (10 users per page)
+-> Activate user accounts
+-> Deactivate user accounts
+-> Admin-only access enforcement
+
+### Security
+-> Password hashing using bcrypt
+-> JWT authentication
+-> Role-based access control (admin / user)
+-> Input validation on all endpoints
+-> Centralized error handling
+-> Environment variables for sensitive data
+
+-----
+
+#### Tech Stack
 
 ### Backend
-- User Signup & Login
-- Password hashing using bcrypt
-- JWT-based authentication
-- Protected routes
-- Role-Based Access Control (Admin / User)
-- MongoDB Atlas integration
-- Clean modular architecture
+-> Node.js
+-> Express.js
+-> MongoDB (Atlas)
+-> Mongoose
+-> bcryptjs
+-> JSON Web Tokens (JWT)
+-> dotenv
 
 ### Frontend
-- User Signup and Login UI
-- JWT token handling
-- Protected route access
-- API integration with backend
-- Basic form validation
+-> React
+-> React Router DOM
+-> Axios
+-> Context API (auth state management)
 
----
+-----
 
-## Tech Stack
-
-### Backend
-- Node.js
-- Express.js
-- MongoDB (Atlas)
-- Mongoose
-- JWT (jsonwebtoken)
-- bcryptjs
-- dotenv
-
-### Frontend
-- React
-- Axios
-- React Router DOM
-
----
-
-## Project Structure
+### Project Structure
 
 Backend-Intern-Assessment/
 │
 ├── backend/
 │ ├── src/
-│ │ ├── controllers/ # Request handling logic
-│ │ ├── routes/ # API route definitions
-│ │ ├── models/ # Mongoose models
-│ │ ├── middleware/ # Authentication & RBAC middleware
-│ │ ├── config/ # Database configuration
-│ │ ├── app.js # Express app configuration
-│ │ └── server.js # Server entry point
+│ │ ├── controllers/ # Route logic
+│ │ ├── routes/ # API routes
+│ │ ├── models/ # Mongoose schemas
+│ │ ├── middleware/ # Auth, RBAC, error handling
+│ │ ├── utils/ # Token helpers
+│ │ ├── app.js
+│ │ └── server.js
 │ │
 │ ├── .env # Environment variables (ignored)
-│ ├── .gitignore
 │ ├── package.json
 │
 ├── frontend/
 │ ├── src/
-│ │ ├── components/ # Reusable UI components
-│ │ ├── pages/ # Login / Signup pages
-│ │ ├── services/ # API service layer
-│ │ ├── App.js
-│ │ └── index.js
+│ │ ├── pages/ # Login, Signup, Profile, Admin dashboard
+│ │ ├── components/ # Navbar
+│ │ ├── routes/ # Protected & Admin routes
+│ │ ├── context/ # Auth context
+│ │ ├── services/ # Axios API client
+│ │ └── App.js
 │ │
 │ ├── package.json
 │
 └── README.md
 
+-----
 
----
-
-## API Endpoints
+### API Endpoints
 
 ### Authentication
-- `POST /api/auth/signup` – Register new user
-- `POST /api/auth/login` – Login user
-- `GET /api/auth/me` – Get logged-in user (Protected)
-- `GET /api/auth/users` – Get all users (Admin only)
+->`POST /api/auth/signup` – Register a new user
+->`POST /api/auth/login` – Login user
+->`POST /api/auth/logout` – Logout user
+->`GET /api/auth/me` – Get current user (Protected)
+->`PUT /api/auth/profile` – Update profile (Protected)
+->`PUT /api/auth/change-password` – Change password (Protected)
 
----
+### Admin
+-> `GET /api/admin/users?page=1&limit=10` – View users (Admin only)
+-> `PATCH /api/admin/users/:id/activate` – Activate user (Admin only)
+-> `PATCH /api/admin/users/:id/deactivate` – Deactivate user (Admin only)
 
-## Environment Variables
+-----
+
+### Frontend Pages
+
+-> Signup Page
+-> Login Page
+-> User Profile Page (view & edit profile, change password)
+-> Admin Dashboard (user table with pagination & actions)
+-> Navigation bar with role-based links
+-> Protected routes for authenticated users
+-> Admin-only route protection
+
+-----
+
+### Environment Variables
 
 Create a `.env` file inside the `backend/` directory:
 
@@ -94,11 +125,11 @@ PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 
-> '.env' is excluded from version control for security reasons.
+-> `.env` is excluded from version control for security reasons.
 
----
+-----
 
-## How to Run the Project
+###  How to Run the Project
 
 ### Backend
 
@@ -107,7 +138,7 @@ cd backend
 npm install
 npm start
 
-Server will run on:
+### Server runs on:
 http://localhost:5000
 
 ### Frontend
@@ -116,31 +147,22 @@ cd frontend
 npm install
 npm start
 
-Frontend will run on:
+### Frontend runs on:
 http://localhost:3000
-
----
 
 ### Authentication Flow
 
-1. User signs up or logs in from frontend
-2.Backend returns a JWT token
-3.Token is stored on the client side
-4.Protected routes send token via Authorization header
-5.Backend validates token and role before allowing access
+1.User signs up or logs in
+2.Backend returns JWT token
+3.Token is stored in browser storage
+4.Protected routes attach token via Authorization header
+5.Backend validates token and user role
 
----
+### Notes
 
-### Role-Based Access Control
+1.Backend follows a clean modular structure
+2.Frontend is intentionally minimal to demonstrate functionality
+3.Commit history reflects incremental and structured development
+4.Dockerization and automated tests can be added as future enhancements
 
-1.Normal users can access their own profile
-2.Admin users can access admin-only routes
-3. Authorization is enforced using middleware
 
----
-
-# Notes
-
-1.Backend follows MVC-style folder separation
-2.Frontend is kept minimal to demonstrate API integration
-3.Commit history reflects incremental development
