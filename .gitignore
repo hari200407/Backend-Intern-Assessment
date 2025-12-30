@@ -1,0 +1,21 @@
+node_modules/
+.env
+.env.*
+tests/
+test-db.js
+
+
+# Env files
+.env
+.env.local
+.env.test
+
+# Docker
+docker-compose.override.yml
+
+# Test artifacts
+test-db.js
+tests/
+
+# OS
+.DS_Store

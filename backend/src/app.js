@@ -1,25 +1,14 @@
 const express = require("express");
+const dotenv = require("dotenv");
 const cors = require("cors");
-const authRoutes = require("./routes/authRoutes");
-const adminRoutes = require("./routes/adminRoutes");
+
+dotenv.config();
 
 const app = express();
-
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// Routes
-
-app.use("/api/auth", authRoutes);
-
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "Backend is running" });
-});
-
-app.use("/api/admin", adminRoutes);
-
-const { errorHandler } = require("./middleware/errorMiddleware");
-
-app.use(errorHandler);
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/admin", require("./routes/adminRoutes"));
 
 module.exports = app;

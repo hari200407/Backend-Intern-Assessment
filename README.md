@@ -105,6 +105,21 @@ Backend-Intern-Assessment/
 
 -----
 
+## Database Design
+
+### User Collection
+-> fullName (String, required)
+-> email (String, unique, required)
+-> password (String, hashed using bcrypt)
+-> role (String: admin/user)
+-> status (String: active/inactive)
+-> lastLogin (Date)
+-> createdAt / updatedAt (auto-managed)
+
+MongoDB Atlas is used as the cloud database.
+
+-----
+
 ### Frontend Pages
 
 -> Signup Page
@@ -157,6 +172,10 @@ http://localhost:3000
 3.Token is stored in browser storage
 4.Protected routes attach token via Authorization header
 5.Backend validates token and user role
+
+### Testing
+Backend APIs were tested manually using Postman.
+Automated Jest tests were partially implemented.
 
 ### Notes
 
