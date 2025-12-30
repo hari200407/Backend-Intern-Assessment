@@ -1,20 +1,22 @@
 const User = require("../models/User");
-
+const mongoose = require("mongoose");
 
 const getUsersWithPagination = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+  const page = Math.max(parseInt(req.query.page) || 1, 1);
+  const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+  const skip = (page - 1) * limit;
 
-    const totalUsers = await User.countDocuments();
-    const users = await User.find()
-      .select("-password")
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+  const totalUsers = await User.countDocuments();
 
-    res.status(200).json({
+  const users = await User.find()
+    .select("-password")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    data: {
       users,
       pagination: {
         totalUsers,
@@ -22,54 +24,59 @@ const getUsersWithPagination = async (req, res) => {
         currentPage: page,
         limit,
       },
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
+    },
+  });
 };
 
 
 const activateUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    user.status = "active";
-    await user.save();
-
-    res.status(200).json({
-      message: "User account activated",
-      userId: user._id,
-      status: user.status,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error("Invalid user ID");
   }
+
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  user.status = "active";
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "User account activated successfully",
+  });
 };
 
 
 const deactivateUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    user.status = "inactive";
-    await user.save();
-
-    res.status(200).json({
-      message: "User account deactivated",
-      userId: user._id,
-      status: user.status,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error("Invalid user ID");
   }
+
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (req.user._id.toString() === req.params.id) {
+    res.status(400);
+    throw new Error("Admin cannot deactivate own account");
+  }
+
+  user.status = "inactive";
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "User account deactivated successfully",
+  });
 };
 
 
