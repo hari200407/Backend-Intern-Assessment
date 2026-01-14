@@ -1,7 +1,6 @@
-# Backend Intern Assessment – Full Stack Application
+# User Management System
 
-This repository contains a full-stack application developed as part of a Backend Intern assessment. 
-The project includes a Node.js + Express backend with authentication, role-based access control, and user management, along with a React frontend that consumes and demonstrates all backend APIs.
+This repository contains a full-stack application. The project includes a Node.js + Express backend with authentication, role-based access control, and user management, along with a React frontend that consumes and demonstrates all backend APIs.
 
 -----
 
